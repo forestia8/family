@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>할아버지 당첨!</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Gothic:wght@400;700;800&family=Nanum+Pen+Script&display=swap');
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+
+  body{
+    background: linear-gradient(135deg, #dceeff 0%, #c8dff7 50%, #ddeeff 100%);
+    min-height:100vh;
+    font-family:'Nanum Gothic',sans-serif;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:30px 16px 60px;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background-image:
+      radial-gradient(circle, rgba(50,100,200,0.1) 1px, transparent 1px),
+      radial-gradient(circle, rgba(100,150,220,0.08) 1px, transparent 1px);
+    background-size:30px 30px, 50px 50px;
+    background-position:0 0, 15px 15px;
+    pointer-events:none;z-index:0;
+  }
+
+  .page-wrapper{
+    position:relative;z-index:1;
+    width:100%;max-width:480px;
+    display:flex;flex-direction:column;gap:0;
+  }
+
+  /* ======= LOTTERY CARD ======= */
+  .lottery-card{
+    background:#fff;
+    border-radius:18px 18px 0 0;
+    box-shadow:0 8px 40px rgba(0,0,0,0.15);
+    overflow:hidden;
+  }
+
+  .lottery-header{
+    background:#4a90d9;
+    padding:16px 20px;
+    text-align:center;
+  }
+  .lottery-header h1{
+    color:#fff;
+    font-size:18px;
+    font-weight:800;
+    letter-spacing:2px;
+  }
+
+  .lottery-body{
+    padding:24px 20px 20px;
+  }
+
+  .lottery-round{
+    text-align:center;
+    margin-bottom:20px;
+  }
+  .lottery-round .round-title{
+    font-size:17px;
+    font-weight:700;
+    color:#222;
+  }
+  .lottery-round .round-title span{
+    color:#e74c4c;
+    font-size:20px;
+    font-weight:800;
+  }
+  .lottery-round .sub{
+    font-size:13px;
+    color:#555;
+    margin-top:4px;
+    font-weight:700;
+  }
+
+  .winning-balls{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:6px;
+    margin:16px 0;
+    flex-wrap:wrap;
+  }
+  .ball{
+    width:44px;height:44px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:15px;font-weight:800;
+    color:#fff;
+    box-shadow:0 3px 8px rgba(0,0,0,0.2);
+    animation:popIn 0.4s ease both;
+  }
+  .ball.red{background:linear-gradient(145deg,#f76f6f,#e63232);}
+  .ball.gold{background:linear-gradient(145deg,#f5c842,#e0a800);color:#6b4c00;}
+
+  @keyframes popIn{
+    from{transform:scale(0);opacity:0;}
+    to{transform:scale(1);opacity:1;}
+  }
+  .ball:nth-child(1){animation-delay:0.1s;}
+  .ball:nth-child(2){animation-delay:0.2s;}
+  .ball:nth-child(3){animation-delay:0.3s;}
+  .ball:nth-child(4){animation-delay:0.4s;}
+  .ball:nth-child(5){animation-delay:0.5s;}
+  .ball:nth-child(6){animation-delay:0.6s;}
+  .ball.plus-sign{
+    background:none;color:#333;font-size:20px;
+    box-shadow:none;width:24px;
+  }
+  .ball.gold{animation-delay:0.8s;}
+
+  .congrats-text{
+    text-align:center;
+    margin:16px 0 20px;
+  }
+  .congrats-text p{
+    font-size:14px;color:#555;margin-bottom:4px;
+  }
+  .congrats-text h2{
+    font-size:22px;font-weight:800;color:#222;
+    letter-spacing:1px;
+  }
+  .congrats-text h2 .heart{color:#e63232;}
+
+  .lottery-grid{
+    border:1px solid #ddd;
+    border-radius:8px;
+    overflow:hidden;
+    margin-top:4px;
+  }
+  .grid-row{
+    display:grid;
+    grid-template-columns:36px 56px 1fr;
+    border-bottom:1px solid #eee;
+    align-items:center;
+    min-height:52px;
+  }
+  .grid-row:last-child{border-bottom:none;}
+  .grid-row.winner{background:#fff8f8;}
+
+  .row-label{
+    text-align:center;
+    font-size:13px;font-weight:700;
+    color:#444;
+    padding:8px 4px;
+    border-right:1px solid #eee;
+  }
+  .row-result{
+    text-align:center;
+    font-size:12px;font-weight:700;
+    padding:4px 6px;
+    border-right:1px solid #eee;
+  }
+  .row-result.win{color:#e63232;}
+  .row-result.lose{color:#888;}
+
+  .row-balls{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    padding:8px 10px;
+    flex-wrap:wrap;
+  }
+  .mini-ball{
+    width:34px;height:34px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:800;
+    color:#fff;
+  }
+  .mini-ball.gray{background:linear-gradient(145deg,#aaa,#888);}
+  .mini-ball.red{background:linear-gradient(145deg,#f76f6f,#e63232);}
+
+  .lottery-footer{
+    padding:14px 20px;
+    border-top:1px solid #f0f0f0;
+    text-align:center;
+    font-size:11px;
+    color:#888;
+    line-height:1.6;
+  }
+  .lottery-footer strong{
+    color:#2c6db5;
+    font-weight:800;
+  }
+
+  /* ======= LETTER SECTION ======= */
+  .letter-section{
+    background: linear-gradient(160deg, #f5f9ff 0%, #fff 100%);
+    border-radius:0 0 18px 18px;
+    box-shadow:0 8px 40px rgba(0,0,0,0.15);
+    padding:30px 24px 36px;
+    border-top: 3px dashed #b8d4f8;
+    position:relative;
+    overflow:hidden;
+  }
+
+  .letter-section::before{
+    content:'';
+    position:absolute;inset:0;
+    background-image:
+      linear-gradient(rgba(200,200,200,0.08) 1px, transparent 1px);
+    background-size:100% 32px;
+    pointer-events:none;
+  }
+
+  .test-sticks{
+    display:flex;
+    justify-content:center;
+    gap:16px;
+    margin-bottom:24px;
+  }
+  .stick{
+    width:130px;height:28px;
+    border-radius:20px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:800;
+    letter-spacing:1px;
+    position:relative;
+    box-shadow:0 2px 8px rgba(0,0,0,0.15);
+  }
+  .stick.pink{background:linear-gradient(90deg,#f0a0b8,#f7c5d0,#fff,#fff,#f7c5d0,#f0a0b8);}
+  .stick.blue{background:linear-gradient(90deg,#a0c4f0,#c5d8f7,#fff,#fff,#c5d8f7,#a0c4f0);}
+  .stick-lines{
+    display:flex;gap:3px;position:absolute;right:24px;
+  }
+  .stick-line{
+    width:3px;height:16px;
+    background:#e63232;
+    border-radius:2px;
+  }
+
+  .letter-paper{
+    background:#fff;
+    border-radius:12px;
+    padding:24px 22px;
+    box-shadow:0 2px 16px rgba(0,0,0,0.08);
+    position:relative;
+    margin-bottom:24px;
+  }
+  .letter-paper::before{
+    content:'';
+    position:absolute;top:0;left:40px;right:40px;
+    height:3px;
+    background:linear-gradient(90deg, transparent, #b8d4f8, #f9b8cc, #b8f0a8, #f9d8a8, transparent);
+    border-radius:2px;
+  }
+
+  .letter-line{
+    font-family:'Nanum Pen Script', cursive;
+    font-size:22px;
+    color:#333;
+    margin-bottom:14px;
+    line-height:1.4;
+    position:relative;
+  }
+  .letter-line.greeting{font-size:24px;}
+
+  .underline-pink{
+    display:inline;
+    background:linear-gradient(transparent 60%, rgba(255,100,150,0.35) 60%);
+  }
+  .underline-yellow{
+    display:inline;
+    background:linear-gradient(transparent 60%, rgba(255,230,50,0.5) 60%);
+  }
+  .underline-blue{
+    display:inline;
+    background:linear-gradient(transparent 60%, rgba(100,180,255,0.4) 60%);
+  }
+  .underline-green{
+    display:inline;
+    background:linear-gradient(transparent 60%, rgba(100,220,120,0.4) 60%);
+  }
+  .underline-orange{
+    display:inline;
+    background:linear-gradient(transparent 60%, rgba(255,160,50,0.4) 60%);
+  }
+
+  .num-12{
+    font-family:'Nanum Myeongjo',serif;
+    font-size:32px;font-weight:800;
+    color:#333;
+  }
+
+  .decorative-lines{
+    display:flex;flex-direction:column;gap:6px;margin:10px 0 4px;
+  }
+  .deco-line{
+    height:3px;border-radius:2px;
+    opacity:0.7;
+  }
+
+  .ultrasound-wrapper{
+    background:#1a1a2e;
+    border-radius:12px;
+    padding:4px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.3);
+    margin-top:4px;
+  }
+  .ultrasound-inner{
+    background:#0d0d1a;
+    border-radius:10px;
+    padding:16px;
+    color:#aad4ff;
+    font-family:'Nanum Gothic',sans-serif;
+  }
+  .us-header{
+    display:flex;justify-content:space-between;
+    font-size:9px;color:#88bbdd;
+    margin-bottom:10px;
+    flex-wrap:wrap;gap:4px;
+  }
+  .us-screen{
+    background:radial-gradient(ellipse at 40% 40%, #1a3a5a 0%, #0a1520 60%, #050a10 100%);
+    border-radius:8px;
+    height:160px;
+    margin-bottom:12px;
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+    overflow:hidden;
+  }
+  .us-screen::before{
+    content:'';
+    position:absolute;inset:0;
+    background:
+      radial-gradient(ellipse 80px 60px at 45% 50%, rgba(10,30,60,0.9) 0%, transparent 70%),
+      radial-gradient(ellipse 60px 45px at 43% 48%, rgba(0,0,0,0.95) 0%, transparent 60%);
+  }
+  .us-screen-text{
+    position:relative;
+    font-size:11px;color:#6699bb;
+    text-align:center;
+    font-family:'Nanum Gothic',sans-serif;
+  }
+  .us-dot{
+    width:6px;height:6px;
+    background:#aad4ff;
+    border-radius:50%;
+    position:absolute;
+    top:44%;left:46%;
+    box-shadow:0 0 8px #6af;
+  }
+  .us-data{
+    display:grid;grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  .us-data-item{
+    background:rgba(255,255,255,0.05);
+    border-radius:6px;
+    padding:8px 10px;
+  }
+  .us-data-label{
+    font-size:9px;color:#88aacc;margin-bottom:2px;
+  }
+  .us-data-value{
+    font-size:11px;color:#cce4ff;font-weight:700;
+  }
+
+  .footer-note{
+    text-align:center;
+    margin-top:28px;
+    font-family:'Nanum Pen Script',cursive;
+    font-size:19px;
+    color:#2c6db5;
+    line-height:1.7;
+  }
+
+  @keyframes sparkle{
+    0%,100%{opacity:1;transform:scale(1);}
+    50%{opacity:0.4;transform:scale(1.3);}
+  }
+  .sparkle{
+    display:inline-block;
+    animation:sparkle 1.5s ease-in-out infinite;
+    color:#b8d4f8;
+  }
+  .sparkle:nth-child(2){animation-delay:0.5s;}
+  .sparkle:nth-child(3){animation-delay:1s;}
+
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+
+  <!-- LOTTERY CARD -->
+  <div class="lottery-card">
+    <div class="lottery-header">
+      <h1>행복 복권 당첨 결과</h1>
+    </div>
+    <div class="lottery-body">
+      <div class="lottery-round">
+        <div class="round-title">로또 6/45 <span>제1314회</span></div>
+        <div class="sub">당첨번호</div>
+      </div>
+
+      <div class="winning-balls">
+        <div class="ball red">기</div>
+        <div class="ball red">적</div>
+        <div class="ball red">이</div>
+        <div class="ball red">왔</div>
+        <div class="ball red">어</div>
+        <div class="ball red">요</div>
+        <div class="ball plus-sign">+</div>
+        <div class="ball gold">&#9829;</div>
+      </div>
+
+      <div class="congrats-text">
+        <p>축하합니다!</p>
+        <h2><span class="heart">&#9829;</span> 할아버지 당첨 <span class="heart">&#9829;</span></h2>
+      </div>
+
+      <div class="lottery-grid">
+        <div class="grid-row">
+          <div class="row-label">A</div>
+          <div class="row-result lose">낙첨</div>
+          <div class="row-balls">
+            <div class="mini-ball gray">깜</div>
+            <div class="mini-ball gray">짝</div>
+            <div class="mini-ball gray">놀</div>
+            <div class="mini-ball gray">라</div>
+            <div class="mini-ball gray">셨</div>
+            <div class="mini-ball gray">죠</div>
+          </div>
+        </div>
+        <div class="grid-row">
+          <div class="row-label">B</div>
+          <div class="row-result lose">낙첨</div>
+          <div class="row-balls">
+            <div class="mini-ball gray">저</div>
+            <div class="mini-ball gray">희</div>
+            <div class="mini-ball gray">에</div>
+            <div class="mini-ball gray">게</div>
+            <div class="mini-ball gray">벅</div>
+            <div class="mini-ball gray">찬</div>
+          </div>
+        </div>
+        <div class="grid-row winner">
+          <div class="row-label">C</div>
+          <div class="row-result win">당첨</div>
+          <div class="row-balls">
+            <div class="mini-ball red">기</div>
+            <div class="mini-ball red">적</div>
+            <div class="mini-ball red">이</div>
+            <div class="mini-ball red">왔</div>
+            <div class="mini-ball red">어</div>
+            <div class="mini-ball red">요</div>
+          </div>
+        </div>
+        <div class="grid-row">
+          <div class="row-label">D</div>
+          <div class="row-result lose">낙첨</div>
+          <div class="row-balls">
+            <div class="mini-ball gray">할</div>
+            <div class="mini-ball gray">부</div>
+            <div class="mini-ball gray">지</div>
+            <div class="mini-ball gray">되</div>
+            <div class="mini-ball gray">신</div>
+            <div class="mini-ball gray">거</div>
+          </div>
+        </div>
+        <div class="grid-row">
+          <div class="row-label">E</div>
+          <div class="row-result lose">낙첨</div>
+          <div class="row-balls">
+            <div class="mini-ball gray">축</div>
+            <div class="mini-ball gray">하</div>
+            <div class="mini-ball gray">드</div>
+            <div class="mini-ball gray">려</div>
+            <div class="mini-ball gray">요</div>
+            <div class="mini-ball gray">&#9829;</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lottery-footer">
+      QR 당첨 확인은 보조 확인 수단이므로 반드시 손주의 실물과 대조하시기 바랍니다.<br/>
+      <strong>세상에서 가장 큰 행운, 할아버지가 된 당신에게 지금됩니다.</strong>
+    </div>
+  </div>
+
+  <!-- LETTER SECTION -->
+  <div class="letter-section">
+    <div class="test-sticks">
+      <div class="stick pink">
+        <div class="stick-lines">
+          <div class="stick-line"></div>
+          <div class="stick-line"></div>
+        </div>
+      </div>
+      <div class="stick blue">
+        <div class="stick-lines">
+          <div class="stick-line"></div>
+          <div class="stick-line"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="letter-paper">
+      <div class="letter-line greeting">
+        안녕하세요 <span style="color:#e63232;">&#9829;</span>
+      </div>
+      <div class="letter-line">
+        <span class="underline-pink">할부지, 할무니 되신 걸 축하드려요!</span>
+      </div>
+      <div class="letter-line">
+        <span class="underline-yellow">저 많이 보고싶으셨죠? (저도요 ㅎㅎ)</span>
+      </div>
+      <div class="letter-line">
+        무럭무럭! 자라서 <span class="num-12">12</span><span class="underline-green">월에 만나요</span>
+      </div>
+      <div class="decorative-lines">
+        <div class="deco-line" style="width:60%;background:linear-gradient(90deg,#b8d4f8,#f9b8cc,#b8f0a8,#f9d8a8);"></div>
+        <div class="deco-line" style="width:40%;background:linear-gradient(90deg,#b8d4f8,#b8f0a8);"></div>
+      </div>
+      <div class="letter-line">
+        <span class="underline-orange">기도하며 기다려주세요-!</span>
+      </div>
+      <div class="deco-line" style="width:70%;background:linear-gradient(90deg,#b8d4f8,#b8f0a8,#b8d4f8);margin-top:10px;"></div>
+    </div>
+
+    <!-- Ultrasound -->
+    <div class="ultrasound-wrapper">
+      <div class="ultrasound-inner">
+        <div class="us-header">
+          <span>LEE SU MIN</span>
+          <span>LIN OBGY</span>
+          <span>2026-04-30 07:59:53AM</span>
+        </div>
+        <div class="us-screen">
+          <div class="us-dot"></div>
+          <div class="us-screen-text">
+            초음파 확인 중...
+          </div>
+        </div>
+        <div class="us-data">
+          <div class="us-data-item">
+            <div class="us-data-label">1 GA (임신주수)</div>
+            <div class="us-data-value">5w6d ± 3d</div>
+          </div>
+          <div class="us-data-item">
+            <div class="us-data-label">1 EDD (예정일)</div>
+            <div class="us-data-value">2026-12-25</div>
+          </div>
+          <div class="us-data-item">
+            <div class="us-data-label">2 GA (임신주수)</div>
+            <div class="us-data-value">6w0d ± 4d</div>
+          </div>
+          <div class="us-data-item">
+            <div class="us-data-label">2 EDD (예정일)</div>
+            <div class="us-data-value">2026-12-24</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      <span class="sparkle">*</span>
+      12월에 꼭 만나요, 할아버지!<br/>
+      많이 사랑해요 &#9829;
+      <span class="sparkle">*</span>
+      <span class="sparkle">*</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
